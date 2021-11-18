@@ -1,10 +1,12 @@
 package fourj;
 
+import java.util.stream.Stream;
+
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
-public class Hierarchy {
+public class Product {
 	static final String NAME = "name";
 
 	private GraphDatabaseService databaseService;
@@ -12,18 +14,14 @@ public class Hierarchy {
 	private final Node underlyingNode;
 	private Hierarchy parent;
 
-	Hierarchy(Object hNode) {
-		this.underlyingNode = (Node)hNode;
+	Product(Node productNode) {
+		this.underlyingNode = productNode;
 	}
 
-	Hierarchy(Node hNode) {
-		this.underlyingNode = hNode;
-	}
-
-	Hierarchy(GraphDatabaseService databaseService, Transaction transaction, Node hNode) {
+	Product(GraphDatabaseService databaseService, Transaction transaction, Node productNode) {
 		this.databaseService = databaseService;
 		this.transaction = transaction;
-		this.underlyingNode = hNode;
+		this.underlyingNode = productNode;
 	}
 
 	protected Node getUnderlyingNode() {
@@ -41,15 +39,19 @@ public class Hierarchy {
 
 	@Override
 	public boolean equals(Object o) {
-		return o instanceof Hierarchy && underlyingNode.equals(((Hierarchy) o).getUnderlyingNode());
+		return o instanceof Product && underlyingNode.equals(((Product) o).getUnderlyingNode());
 	}
 
 	@Override
 	public String toString() {
-		return "Hierarchy[" + underlyingNode.getAllProperties() + " with |"+ parent +"|]";
+		return "Product[" + underlyingNode.getAllProperties() + " with |"+ parent +"|]";
 	}
 	
-	public void setParent(Hierarchy p) {
-		this.parent = p;
+	public Product addHierarchy(Stream<Hierarchy> h) {	
+		parent = h.reduce(null, ((partial, element) -> {
+				element.setParent(partial);
+				return element;
+			}));
+		return this;
 	}
 }
