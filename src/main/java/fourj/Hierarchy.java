@@ -20,6 +20,8 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.io.fs.FileUtils;
 
+import com.google.common.collect.ImmutableMap;
+
 public class Hierarchy {
 
 	private static final Path databaseDirectory = Path.of("target/java-query-db");
@@ -45,20 +47,29 @@ public class Hierarchy {
 
 		insertHData(db);
 		
-		Map<String,Object> params = new HashMap<>();
-		params.put( "id", "n1" );
-
-//		String q =
-//		    "MATCH (n {id: 'n1'})-[*]-(r:Hierarchy)" + "\n" +
-//		    "WHERE r.parentId IS NULL" + "\n" +
-//		    "RETURN n, n.name";
-		String q =
-			    "MATCH (n {id: $id})-[*]-(r:Hierarchy)" + "\n" +
+		String hMatch =
+			    "MATCH (h:Hierarchy {id: $id})-[*]->(r:Hierarchy)" + "\n" +
 			    "WHERE r.parentId IS NULL" + "\n" +
-			    "RETURN n, n.name";
-
-		query(q, params, db);
+			    "RETURN h, h.name";
 		
+		query(hMatch, ImmutableMap.of("id", "n1"), db);
+		System.out.println("------------");
+
+		String pMatch =
+			    "MATCH (p:Product {id: $id})-[*]->(r:Hierarchy)" + "\n" +
+			    "WHERE r.parentId IS NULL" + "\n" +
+			    "RETURN p, p.name";
+
+		query(pMatch, ImmutableMap.of("id", "p1"), db);
+		System.out.println("------------");
+
+		String subtreeMatch =
+			    "MATCH (p:Product)-[*]->(h:Hierarchy {id: $id})-[*]->(r:Hierarchy)" + "\n" +
+			    "WHERE r.parentId IS NULL" + "\n" +
+			    "RETURN p, p.name";
+		
+		query(subtreeMatch, ImmutableMap.of("id", "n1"), db);
+
 		managementService.shutdown();
 	}
 
@@ -74,13 +85,13 @@ public class Hierarchy {
 			}
 		}
 
-		System.out.println("------------");
+//		System.out.println("------------");
 		try (Transaction tx = db.beginTx(); Result result = tx.execute(q, params)) {
 
-			Iterator<Node> n_column = result.columnAs("n");
-			n_column.forEachRemaining(node -> nodeResult = node + ": " + node.getProperty("name"));
+//			Iterator<Node> n_column = result.columnAs("n");
+//			n_column.forEachRemaining(node -> nodeResult = node + ": " + node.getProperty("name"));
 //			System.out.println(nodeResult);
-			System.out.println("------------");
+//			System.out.println("------------");
 
 			List<String> columns = result.columns();
 
@@ -94,7 +105,7 @@ public class Hierarchy {
 	private void insertHData(GraphDatabaseService db) {
 		try (Transaction tx = db.beginTx()) {
 			Node root = tx.createNode(Label.label("Hierarchy"));
-			root.setProperty("name", "my node");
+			root.setProperty("name", "top root");
 			root.setProperty("id", "root");
 
 			Node n1 = tx.createNode(Label.label("Hierarchy"));
@@ -111,9 +122,22 @@ public class Hierarchy {
 
 			n11.createRelationshipTo(n1, RelTypes.PARENT);
 
+			////////////////////////////
+			
+			Node p1 = tx.createNode(Label.label("Product"));
+			p1.setProperty("name", "my 1 prod");
+			p1.setProperty("id", "p1");
+
+			p1.createRelationshipTo(n1, RelTypes.PARENT);
+
+			Node p11 = tx.createNode(Label.label("Product"));
+			p11.setProperty("name", "my 11 prod");
+			p11.setProperty("id", "p11");
+
+			p11.createRelationshipTo(n11, RelTypes.PARENT);
+			
 			tx.commit();
 		}
-
 	}
 
 	private void clearDbPath() {
