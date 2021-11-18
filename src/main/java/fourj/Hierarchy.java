@@ -4,8 +4,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAM
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -52,15 +51,20 @@ public class Hierarchy {
 			    "WHERE r.parentId IS NULL" + "\n" +
 			    "RETURN h, h.name";
 		
-		query(hMatch, ImmutableMap.of("id", "n1"), db);
+//		query(hMatch, ImmutableMap.of("id", "n1"), db);
 		System.out.println("------------");
 
-		String pMatch =
-			    "MATCH (p:Product {id: $id})-[*]->(r:Hierarchy)" + "\n" +
-			    "WHERE r.parentId IS NULL" + "\n" +
-			    "RETURN p, p.name";
+//		String pMatch =
+//			    "MATCH (p:Product {id: $id})-[*]->(r:Hierarchy)" + "\n" +
+//			    "WHERE r.parentId IS NULL" + "\n" +
+//			    "RETURN p, p.name";
 
-		query(pMatch, ImmutableMap.of("id", "p1"), db);
+		String pMatch =
+			    "MATCH path = (p:Product {id: $id})-[*]->(r:Hierarchy)" + "\n" +
+			    "WHERE r.parentId IS NULL" + "\n" +
+			    "RETURN nodes(path) AS path";
+
+		pquery(pMatch, ImmutableMap.of("id", "p1"), db);
 		System.out.println("------------");
 
 		String subtreeMatch =
@@ -68,7 +72,7 @@ public class Hierarchy {
 			    "WHERE r.parentId IS NULL" + "\n" +
 			    "RETURN p, p.name";
 		
-		query(subtreeMatch, ImmutableMap.of("id", "n1"), db);
+//		query(subtreeMatch, ImmutableMap.of("id", "n1"), db);
 
 		managementService.shutdown();
 	}
@@ -85,7 +89,6 @@ public class Hierarchy {
 			}
 		}
 
-//		System.out.println("------------");
 		try (Transaction tx = db.beginTx(); Result result = tx.execute(q, params)) {
 
 //			Iterator<Node> n_column = result.columnAs("n");
@@ -100,6 +103,25 @@ public class Hierarchy {
 			System.out.println(resultString);
 		}
 
+		
+	}
+
+	private void pquery(String q, Map<String,Object> params, GraphDatabaseService db) {
+		try (Transaction tx = db.beginTx(); Result result = tx.execute(q, params)) {
+//			resultString = tx.execute(q, params).resultAsString();
+//			System.out.println(resultString);
+			Map<String, Object> row = result.next();
+//			for (Entry<String, Object> column : row.entrySet()) {
+//				rows += column.getKey() + ": " + column.getValue() + "; ";
+//			}
+//			rows += "\n";
+			ArrayList asList = (ArrayList) row.get("path");
+			System.out.println(asList.get(0).getClass());
+			System.out.println(asList.get(1));
+			System.out.println(asList.get(2));
+//			System.out.println(row.values());
+		}
+		
 	}
 
 	private void insertHData(GraphDatabaseService db) {
