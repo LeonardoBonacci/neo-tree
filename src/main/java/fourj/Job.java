@@ -5,24 +5,18 @@ import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAM
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
-import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.kernel.api.Procedures;
 import org.neo4j.io.fs.FileUtils;
 import org.neo4j.kernel.impl.core.NodeEntity;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -30,9 +24,6 @@ public class Job {
 
 	private static final Path databaseDirectory = Path.of("target/java-query-db");
 	String resultString;
-	String columnsString;
-	String nodeResult;
-	String rows = "";
 
 	private enum RelTypes implements RelationshipType {
 		PARENT
@@ -51,20 +42,29 @@ public class Job {
 
 		insertHData(db);
 
-		String hMatch = "MATCH (h:Hierarchy {id: $id})-[*]->(r:Hierarchy)" + "\n" + "WHERE r.parentId IS NULL" + "\n"
-				+ "RETURN h, h.name";
+		// @formatter:off
+		String hMatch = 
+				"MATCH (h:Hierarchy {id: $id})-[*]->(r:Hierarchy)" + "\n" + "WHERE r.parentId IS NULL" + "\n"
+			  + "RETURN h, h.name";
+		// @formatter:on
 
 		query(hMatch, ImmutableMap.of("id", "n1"), db);
 		System.out.println("------------");
 
-		String pMatch = "MATCH path = (p:Product {id: $id})-[*]->(r:Hierarchy)" + "\n" + "WHERE r.parentId IS NULL"
-				+ "\n" + "RETURN nodes(path) AS path";
+		// @formatter:off
+		String pMatch = 
+				"MATCH path = (p:Product {id: $id})-[*]->(r:Hierarchy)" + "\n" + "WHERE r.parentId IS NULL" + "\n" 
+			  + "RETURN nodes(path) AS path";
+		// @formatter:on
 
 		pquery(pMatch, ImmutableMap.of("id", "p1"), db);
 		System.out.println("------------");
 
-		String subtreeMatch = "MATCH (p:Product)-[*]->(h:Hierarchy {id: $id})-[*]->(r:Hierarchy)" + "\n"
-				+ "WHERE r.parentId IS NULL" + "\n" + "RETURN p, p.name";
+		// @formatter:off
+		String subtreeMatch = 
+				"MATCH (p:Product)-[*]->(h:Hierarchy {id: $id})-[*]->(r:Hierarchy)" + "\n"
+			  + "WHERE r.parentId IS NULL" + "\n" + "RETURN p, p.name";
+		// @formatter:on
 
 		query(subtreeMatch, ImmutableMap.of("id", "n1"), db);
 
@@ -73,26 +73,6 @@ public class Job {
 
 	private void query(String q, Map<String, Object> params, GraphDatabaseService db) {
 		try (Transaction tx = db.beginTx(); Result result = tx.execute(q, params)) {
-			while (result.hasNext()) {
-				Map<String, Object> row = result.next();
-				for (Entry<String, Object> column : row.entrySet()) {
-					rows += column.getKey() + ": " + column.getValue() + "; ";
-				}
-				rows += "\n";
-//				System.out.println(rows);
-			}
-		}
-
-		try (Transaction tx = db.beginTx(); Result result = tx.execute(q, params)) {
-
-//			Iterator<Node> n_column = result.columnAs("n");
-//			n_column.forEachRemaining(node -> nodeResult = node + ": " + node.getProperty("name"));
-//			System.out.println(nodeResult);
-//			System.out.println("------------");
-
-			List<String> columns = result.columns();
-
-			columnsString = columns.toString();
 			resultString = tx.execute(q, params).resultAsString();
 			System.out.println(resultString);
 		}
@@ -106,8 +86,7 @@ public class Job {
 			ArrayList asList = (ArrayList) row.get("path");
 
 			Product p = new Product((NodeEntity) asList.get(0));
-			Stream<Hierarchy> h = asList.subList(1, asList.size()).stream()
-						.map(n -> new Hierarchy((NodeEntity)n));
+			Stream<Hierarchy> h = asList.subList(1, asList.size()).stream().map(n -> new Hierarchy((NodeEntity) n));
 
 			p.addHierarchy(h);
 			System.out.println(p);
@@ -151,15 +130,5 @@ public class Job {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public static void registerProcedure(GraphDatabaseService db, Class<?>... procedures) throws KernelException {
-		Procedures proceduresService = ((GraphDatabaseAPI) db).getDependencyResolver()
-				.resolveDependency(Procedures.class);
-//		for (Class<?> procedure : procedures) {
-//			proceduresService.registerProcedure(procedure, true);
-//			proceduresService.registerFunction(procedure, true);
-//			proceduresService.registerAggregationFunction(procedure, true);
-//		}
 	}
 }
