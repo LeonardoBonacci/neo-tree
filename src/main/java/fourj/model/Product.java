@@ -1,7 +1,5 @@
 package fourj.model;
 
-import static fourj.UglyHelper.plabel;
-
 import java.util.stream.Stream;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -9,10 +7,8 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fourj.UglyHelper;
 
@@ -28,7 +24,7 @@ public class Product extends Base {
 
 	@Override
 	Node thisNode(Transaction tx, JsonNode json) {
-		Node n = tx.findNode(plabel, "id", json.get("id").textValue()); // update
+		Node n = tx.findNode(plabel, ID, json.get(ID).textValue()); // update
 		if (n == null) { // + insert
 			n = tx.createNode(plabel);
 		}
@@ -38,15 +34,15 @@ public class Product extends Base {
 			n.removeProperty(prop);
 		}
 
-		n.setProperty("name", json.get("name").textValue());
-		n.setProperty("id", json.get("id").textValue());
+		n.setProperty(NAME, json.get(NAME).textValue());
+		n.setProperty(ID, json.get(ID).textValue());
 		
-		if (json.get("parentId") != null) {
-			n.setProperty("parentId", json.get("parentId").textValue());
+		if (json.get(PARENT_ID) != null) {
+			n.setProperty(PARENT_ID, json.get(PARENT_ID).textValue());
 		}
 		
 		try {
-			n.setProperty("jsonString", new ObjectMapper().writeValueAsString(json));
+			n.setProperty(JSON_STRING, new ObjectMapper().writeValueAsString(json));
 			return n;
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
@@ -69,21 +65,20 @@ public class Product extends Base {
 		return "Product[" + underlyingNode.getAllProperties() + " with |"+ parent +"|]";
 	}
 	
-	public Product addHierarchy(Stream<Hierarchy> h) {	
+	public Product addHierarchyPath(Stream<Hierarchy> h) {	
 		parent = h.reduce(null, ((partial, element) -> {
 			if (partial == null)
 				return element;
 
 			partial.setParent(element);
 			partial.getUnderlyingNode()
-				.setProperty("jsonString", UglyHelper.jsonParentStuff(partial, element));
+				.setProperty(JSON_STRING, UglyHelper.jsonParent(partial, element));
 			return partial;
 		}));
 		
 		getUnderlyingNode()
-			.setProperty("jsonString", UglyHelper.jsonParentStuff(this, parent));
+			.setProperty(JSON_STRING, UglyHelper.jsonParent(this, parent));
 
 		return this;
-
 	}
 }

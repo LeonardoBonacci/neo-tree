@@ -94,7 +94,7 @@ public class Job {
 			Product p = new Product((NodeEntity) asList.get(0));
 			Stream<Hierarchy> hPath = asList.subList(1, asList.size()).stream().map(n -> new Hierarchy((NodeEntity) n));
 
-			System.out.println(p.addHierarchy(hPath).asJsonString());
+			System.out.println(p.addHierarchyPath(hPath).asJsonString());
 		}
 
 	}

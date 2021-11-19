@@ -1,9 +1,8 @@
 package fourj.model;
 
-import static fourj.UglyHelper.hlabel;
-
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
@@ -14,7 +13,16 @@ import fourj.Job.RelTypes;
 
 public abstract class Base {
 
-	protected static final String JSON_STRING = "jsonString";
+	public static final String ID = "id";
+	public static final String NAME = "name";
+	public static final String PARENT_ID = "parentId";
+	public static final String PARENT = "parent";
+	public static final String JSON_STRING = "jsonString";
+	public static final String TMP = "tmp";
+
+	public static final Label hlabel = Label.label("Hierarchy");
+	public static final Label plabel = Label.label("Product");
+
 
 	protected final Node underlyingNode;
 	protected Hierarchy parent;
@@ -38,17 +46,17 @@ public abstract class Base {
 	
 	private Node parentalNode(Transaction tx, JsonNode json) {
 		// if root then nothing
-		if (json.get("parentId") == null) {
+		if (json.get(PARENT_ID) == null) {
 			return null;
 		}
 
-		String parentId = json.get("parentId").textValue();
-		Node parent = tx.findNode(hlabel, "id", parentId);
+		String parentId = json.get(PARENT_ID).textValue();
+		Node parent = tx.findNode(hlabel, ID, parentId);
 		
 		// if parent does not exist yet create a tmp node
 		if (parent == null) {
 			parent = tx.createNode(hlabel);
-			parent.setProperty("tmp", true);
+			parent.setProperty(TMP, true);
 		}
 		
 		return parent;
@@ -67,7 +75,7 @@ public abstract class Base {
 		}
 		
 		// if parent not the same update (= delete + create)
-		if (node.getProperty("parentId") != (String)r.getEndNode().getProperty("id")) {
+		if (node.getProperty(PARENT_ID) != (String)r.getEndNode().getProperty(ID)) {
 			r.delete();
 			return node.createRelationshipTo(parent, RelTypes.PARENT);
 		}
