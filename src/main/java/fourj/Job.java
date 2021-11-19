@@ -47,7 +47,8 @@ public class Job {
 
 		// @formatter:off
 		String hMatch = 
-				"MATCH (h:Hierarchy {id: $id})-[*]->(r:Hierarchy)" + "\n" + "WHERE r.parentId IS NULL" + "\n"
+				"MATCH (h:Hierarchy {id: $id})-[*]->(r:Hierarchy)" + "\n" 
+			  + "WHERE r.parentId IS NULL AND r.tmp IS NULL" + "\n" 
 			  + "RETURN h, h.name";
 		// @formatter:on
 
@@ -56,7 +57,8 @@ public class Job {
 
 		// @formatter:off
 		String pMatch = 
-				"MATCH path = (p:Product {id: $id})-[*]->(r:Hierarchy)" + "\n" + "WHERE r.parentId IS NULL" + "\n" 
+				"MATCH path = (p:Product {id: $id})-[*]->(r:Hierarchy)" + "\n" 
+			  + "WHERE r.parentId IS NULL AND r.tmp IS NULL" + "\n" 
 			  + "RETURN nodes(path) AS path";
 		// @formatter:on
 
@@ -66,7 +68,8 @@ public class Job {
 		// @formatter:off
 		String subtreeMatch = 
 				"MATCH (p:Product)-[*]->(h:Hierarchy {id: $id})-[*]->(r:Hierarchy)" + "\n"
-			  + "WHERE r.parentId IS NULL" + "\n" + "RETURN p, p.name";
+			  + "WHERE r.parentId IS NULL AND r.tmp IS NULL" + "\n" 
+			  + "RETURN p, p.name";
 		// @formatter:on
 
 		query(subtreeMatch, ImmutableMap.of("id", "n1"), db);
@@ -89,10 +92,9 @@ public class Job {
 			ArrayList asList = (ArrayList) row.get("path");
 
 			Product p = new Product((NodeEntity) asList.get(0));
-			Stream<Hierarchy> h = asList.subList(1, asList.size()).stream().map(n -> new Hierarchy((NodeEntity) n));
+			Stream<Hierarchy> hPath = asList.subList(1, asList.size()).stream().map(n -> new Hierarchy((NodeEntity) n));
 
-			p.addHierarchy(h);
-			System.out.println(p);
+			System.out.println(p.addHierarchy(hPath).asJsonString());
 		}
 
 	}

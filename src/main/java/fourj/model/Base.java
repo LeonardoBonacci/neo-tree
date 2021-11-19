@@ -8,15 +8,13 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fourj.Job.RelTypes;
 
 public abstract class Base {
 
-	protected static final String NAME = "name";
+	protected static final String JSON_STRING = "jsonString";
 
 	protected final Node underlyingNode;
 	protected Hierarchy parent;
@@ -82,8 +80,8 @@ public abstract class Base {
 		return underlyingNode;
 	}
 
-	public String getName() {
-		return (String) underlyingNode.getProperty(NAME);
+	public String asJsonString() {
+		return (String) underlyingNode.getProperty(JSON_STRING);
 	}
 
 	@Override

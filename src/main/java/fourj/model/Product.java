@@ -9,8 +9,12 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fourj.UglyHelper;
 
 public class Product extends Base {
 
@@ -67,9 +71,19 @@ public class Product extends Base {
 	
 	public Product addHierarchy(Stream<Hierarchy> h) {	
 		parent = h.reduce(null, ((partial, element) -> {
-				element.setParent(partial);
+			if (partial == null)
 				return element;
-			}));
+
+			partial.setParent(element);
+			partial.getUnderlyingNode()
+				.setProperty("jsonString", UglyHelper.jsonParentStuff(partial, element));
+			return partial;
+		}));
+		
+		getUnderlyingNode()
+			.setProperty("jsonString", UglyHelper.jsonParentStuff(this, parent));
+
 		return this;
+
 	}
 }
