@@ -20,6 +20,9 @@ import org.neo4j.kernel.impl.core.NodeEntity;
 
 import com.google.common.collect.ImmutableMap;
 
+import fourj.model.Hierarchy;
+import fourj.model.Product;
+
 public class Job {
 
 	private static final Path databaseDirectory = Path.of("target/java-query-db");
