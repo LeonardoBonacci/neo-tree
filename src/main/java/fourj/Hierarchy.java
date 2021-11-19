@@ -1,11 +1,11 @@
 package fourj;
 
+import static fourj.UglyHelper.hlabel;
+
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -16,8 +16,6 @@ import fourj.Job.RelTypes;
 
 public class Hierarchy {
 	static final String NAME = "name";
-
-	private static final Label hlabel = Label.label("Hierarchy");
 
 	private final GraphDatabaseService databaseService;
 	private final Node underlyingNode;
@@ -56,6 +54,7 @@ public class Hierarchy {
 		n.setProperty("name", json.get("name").textValue());
 		n.setProperty("id", json.get("id").textValue());
 		
+		// root or no root?
 		if (json.get("parentId") != null) {
 			n.setProperty("parentId", json.get("parentId").textValue());
 		}
@@ -100,7 +99,7 @@ public class Hierarchy {
 		}
 		
 		// if parent not the same update (= delete + create)
-		if (parent.getProperty("parentId") != (String)r.getEndNode().getProperty("id")) {
+		if (pnode.getProperty("parentId") != (String)r.getEndNode().getProperty("id")) {
 			r.delete();
 			return pnode.createRelationshipTo(parent, RelTypes.PARENT);
 		}

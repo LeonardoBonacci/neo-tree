@@ -1,5 +1,8 @@
 package fourj;
 
+import static fourj.UglyHelper.hlabel;
+import static fourj.UglyHelper.plabel;
+
 import java.util.stream.Stream;
 
 import org.neo4j.graphdb.Direction;
@@ -17,8 +20,6 @@ import fourj.Job.RelTypes;
 
 public class Product {
 	static final String NAME = "name";
-
-	private static final Label plabel = Label.label("Product");
 
 	private final GraphDatabaseService databaseService;
 	private final Node underlyingNode;
@@ -101,7 +102,7 @@ public class Product {
 		}
 		
 		// if parent not the same update (= delete + create)
-		if (parent.getProperty("parentId") != (String)r.getEndNode().getProperty("id")) {
+		if (pnode.getProperty("parentId") != (String)r.getEndNode().getProperty("id")) {
 			r.delete();
 			return pnode.createRelationshipTo(parent, RelTypes.PARENT);
 		}
