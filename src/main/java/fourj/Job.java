@@ -1,5 +1,6 @@
 package fourj;
 
+import static fourj.UglyHelper.asJsonNode;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class Job {
 	private static final Path databaseDirectory = Path.of("target/java-query-db");
 	String resultString;
 
-	private enum RelTypes implements RelationshipType {
+	public enum RelTypes implements RelationshipType {
 		PARENT
 	}
 
@@ -95,33 +96,22 @@ public class Job {
 	}
 
 	private void insertHData(GraphDatabaseService db) {
-		try (Transaction tx = db.beginTx()) {
-			Node root = new Hierarchy(db, tx, UglyHelper.asJsonNode("hroot.json")).getUnderlyingNode();
-			Node n1 = new Hierarchy(db, tx, UglyHelper.asJsonNode("hn1.json")).getUnderlyingNode();
-			n1.createRelationshipTo(root, RelTypes.PARENT);
+		new Hierarchy(db, asJsonNode("hroot.json")).getUnderlyingNode();
+		new Hierarchy(db, asJsonNode("hn1.json")).getUnderlyingNode();
+		new Hierarchy(db, asJsonNode("hn11.json")).getUnderlyingNode();
+		new Hierarchy(db, asJsonNode("hn12.json")).getUnderlyingNode();
+		new Hierarchy(db, asJsonNode("hn2.json")).getUnderlyingNode();
+		new Hierarchy(db, asJsonNode("hn21.json")).getUnderlyingNode();
 
-			Node n11 = new Hierarchy(db, tx, UglyHelper.asJsonNode("hn11.json")).getUnderlyingNode();
-			n11.createRelationshipTo(n1, RelTypes.PARENT);
+		////////////////////////////
 
-			Node n12 = new Hierarchy(db, tx, UglyHelper.asJsonNode("hn12.json")).getUnderlyingNode();
-			n12.createRelationshipTo(n1, RelTypes.PARENT);
+		new Product(db, asJsonNode("p1.json")).getUnderlyingNode();
+		new Product(db, asJsonNode("p11.json")).getUnderlyingNode();
 
-			Node n2 = new Hierarchy(db, tx, UglyHelper.asJsonNode("hn2.json")).getUnderlyingNode();
-			n2.createRelationshipTo(root, RelTypes.PARENT);
-
-			Node n21 = new Hierarchy(db, tx, UglyHelper.asJsonNode("hn21.json")).getUnderlyingNode();
-			n21.createRelationshipTo(n2, RelTypes.PARENT);
-
-			////////////////////////////
-
-			Node p1 = new Product(db, tx, UglyHelper.asJsonNode("p1.json")).getUnderlyingNode();
-			p1.createRelationshipTo(n1, RelTypes.PARENT);
-
-			Node p11 = new Product(db, tx, UglyHelper.asJsonNode("p11.json")).getUnderlyingNode();
-			p11.createRelationshipTo(n11, RelTypes.PARENT);
-
-			tx.commit();
-		}
+		////////////////////////////
+		
+//		new Hierarchy(db, asJsonNode("hroot-up.json")).getUnderlyingNode();
+//		new Product(db, asJsonNode("p1-up.json")).getUnderlyingNode();
 	}
 
 	private void clearDbPath() {
