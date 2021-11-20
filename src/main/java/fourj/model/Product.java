@@ -10,7 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import fourj.UglyHelper;
+import fourj.QueriesHelper;
 
 public class Product extends Base {
 
@@ -72,12 +72,12 @@ public class Product extends Base {
 
 			partial.setParent(element);
 			partial.getUnderlyingNode()
-				.setProperty(JSON_STRING, UglyHelper.jsonParent(partial, element));
+				.setProperty(JSON_STRING, QueriesHelper.jsonParent(partial, element));
 			return partial;
 		}));
 		
 		getUnderlyingNode()
-			.setProperty(JSON_STRING, UglyHelper.jsonParent(this, parent));
+			.setProperty(JSON_STRING, QueriesHelper.jsonParent(this, parent));
 
 		return this;
 	}

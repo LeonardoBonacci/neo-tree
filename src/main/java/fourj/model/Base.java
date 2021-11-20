@@ -9,7 +9,7 @@ import org.neo4j.graphdb.Transaction;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fourj.Job.RelTypes;
+import fourj.Queries.RelTypes;
 
 public abstract class Base {
 
@@ -75,7 +75,8 @@ public abstract class Base {
 		}
 		
 		// if parent not the same update (= delete + create)
-		if (node.getProperty(PARENT_ID) != (String)r.getEndNode().getProperty(ID)) {
+		if (r.getEndNode().hasProperty(TMP) // obscure condition..
+			|| node.getProperty(PARENT_ID) != (String)r.getEndNode().getProperty(ID)) {
 			r.delete();
 			return node.createRelationshipTo(parent, RelTypes.PARENT);
 		}

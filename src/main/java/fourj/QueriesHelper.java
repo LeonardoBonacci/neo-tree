@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fourj.model.Base;
 import fourj.model.Hierarchy;
 
-public class UglyHelper {
+public class QueriesHelper {
 
 	public static JsonNode asJsonNode(String filename) {
 		try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename)) {
