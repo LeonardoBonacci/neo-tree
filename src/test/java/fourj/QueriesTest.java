@@ -7,6 +7,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAM
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.jupiter.api.AfterEach;
@@ -16,11 +17,13 @@ import org.junit.jupiter.api.TestInfo;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.io.fs.FileUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
+import fourj.model.Base;
 import fourj.model.Hierarchy;
 import fourj.model.Product;
 
@@ -48,9 +51,16 @@ public class QueriesTest {
 		}
 	}
 
-	@RepeatedTest(5)
+	@RepeatedTest(10)
 	public void one(TestInfo testInfo) {
-		insertHData(db);
+		insertShuffledData(db);
+		
+		try (Transaction tx = db.beginTx()) {
+			assertEquals(6l, tx.getAllNodes().stream().filter(n -> n.getLabels().iterator().next().equals(Base.hlabel)).count());
+			assertEquals(2l, tx.getAllNodes().stream().filter(n -> n.getLabels().iterator().next().equals(Base.plabel)).count());
+			assertEquals(14l, tx.getAllRelationships().stream().flatMap(r -> Arrays.stream(r.getNodes())).count());
+		}
+		
 		var hResult = Queries.query(Queries.hMatch, ImmutableMap.of("id", "n1"), db);
 		var expected = "{name:\"my n1 up\",jsonString:\"{\"id\":\"n1\",\"name\":\"my n1 up\",\"parentId\":\"root\"}\",id:\"n1\",parentId:\"root\"}";
 		assertTrue(hResult.contains(expected));
@@ -60,10 +70,13 @@ public class QueriesTest {
 		assertEquals(expected, pResult);
 
 		var subtreeResult = Queries.query(Queries.subtreeMatch, ImmutableMap.of("id", "n1"), db);
-		System.out.println(subtreeResult);
+		var expected1 = "{name:\"my p11\",jsonString:\"{\"id\":\"p11\",\"name\":\"my p11\",\"parentId\":\"n11\"}\",id:\"p11\",parentId:\"n11\"}";
+		var expected2 = "{name:\"my p1 up\",jsonString:\"{\"id\":\"p1\",\"name\":\"my p1 up\",\"parentId\":\"n1\"}\",id:\"p1\",parentId:\"n1\"}";
+		assertTrue(subtreeResult.contains(expected1));
+		assertTrue(subtreeResult.contains(expected2));
 	}
 	
-	private void insertHData(final GraphDatabaseService db) {
+	private void insertShuffledData(final GraphDatabaseService db) {
 		var pnodes = Lists.newArrayList(
 				asJsonNode("hroot.json"),
 				asJsonNode("hn11.json"),
@@ -91,7 +104,6 @@ public class QueriesTest {
 		var upnodes = Lists.newArrayList(
 				asJsonNode("hroot-up.json"),
 				asJsonNode("hn1-up.json")
-//				asJsonNode("hn21-up.json")
 		);		
 
 		Collections.shuffle(upnodes);

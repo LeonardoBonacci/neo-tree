@@ -56,6 +56,7 @@ public abstract class Base {
 		// if parent does not exist yet create a tmp node
 		if (parent == null) {
 			parent = tx.createNode(hlabel);
+			parent.setProperty(ID, parentId);
 			parent.setProperty(TMP, true);
 		}
 		
@@ -75,7 +76,7 @@ public abstract class Base {
 		}
 		
 		// if parent not the same update (= delete + create)
-		if (r.getEndNode().hasProperty(TMP) // obscure condition..
+		if (r.getEndNode().hasProperty(TMP) // what an obscure condition..
 			|| node.getProperty(PARENT_ID) != (String)r.getEndNode().getProperty(ID)) {
 			r.delete();
 			return node.createRelationshipTo(parent, RelTypes.PARENT);

@@ -11,9 +11,7 @@ import org.neo4j.kernel.impl.core.NodeEntity;
 
 import fourj.model.Hierarchy;
 import fourj.model.Product;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
 public class Queries {
 
 	public enum RelTypes implements RelationshipType {
