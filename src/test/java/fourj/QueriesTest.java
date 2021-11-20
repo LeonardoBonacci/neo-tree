@@ -51,7 +51,7 @@ public class QueriesTest {
 		}
 	}
 
-	@RepeatedTest(10)
+	@RepeatedTest(5)
 	public void one(TestInfo testInfo) {
 		insertShuffledData(db);
 		

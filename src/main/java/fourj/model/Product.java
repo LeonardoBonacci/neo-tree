@@ -3,12 +3,10 @@ package fourj.model;
 import java.util.stream.Stream;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fourj.QueriesHelper;
 
@@ -23,31 +21,8 @@ public class Product extends Base {
 	}
 
 	@Override
-	Node thisNode(Transaction tx, JsonNode json) {
-		Node n = tx.findNode(plabel, ID, json.get(ID).textValue()); // update
-		if (n == null) { // + insert
-			n = tx.createNode(plabel);
-		}
-		
-		// = upsert
-		for (String prop : n.getAllProperties().keySet()) {
-			n.removeProperty(prop);
-		}
-
-		n.setProperty(NAME, json.get(NAME).textValue());
-		n.setProperty(ID, json.get(ID).textValue());
-		
-		if (json.get(PARENT_ID) != null) {
-			n.setProperty(PARENT_ID, json.get(PARENT_ID).textValue());
-		}
-		
-		try {
-			n.setProperty(JSON_STRING, new ObjectMapper().writeValueAsString(json));
-			return n;
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			return n;
-		} 
+	Label label() {
+		return plabel;
 	}
 	
 	@Override

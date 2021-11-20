@@ -7,7 +7,9 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fourj.Queries.RelTypes;
 
@@ -42,8 +44,36 @@ public abstract class Base {
 		}	
 	}
 
-	abstract Node thisNode(Transaction tx, JsonNode json);
-	
+	abstract Label label();
+
+	private Node thisNode(Transaction tx, JsonNode json) {
+		Node n = tx.findNode(label(), ID, json.get(ID).textValue()); // update
+		if (n == null) { // + insert
+			n = tx.createNode(label());
+		}
+		
+		// = upsert
+		for (String prop : n.getAllProperties().keySet()) {
+			n.removeProperty(prop);
+		}
+
+		n.setProperty(ID, json.get(ID).textValue());
+		n.setProperty(NAME, json.get(NAME).textValue());
+		
+		// root or no root?
+		if (json.get(PARENT_ID) != null) {
+			n.setProperty(PARENT_ID, json.get(PARENT_ID).textValue());
+		}
+		
+		try {
+			n.setProperty(JSON_STRING, new ObjectMapper().writeValueAsString(json));
+			return n;
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			return n;
+		} 
+	}
+
 	private Node parentalNode(Transaction tx, JsonNode json) {
 		// if root then nothing
 		if (json.get(PARENT_ID) == null) {
