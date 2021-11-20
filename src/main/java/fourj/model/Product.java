@@ -45,10 +45,10 @@ public class Product extends Base {
 			if (partial == null)
 				return element;
 
-			partial.setParent(element);
-			partial.getUnderlyingNode()
-				.setProperty(JSON_STRING, QueriesHelper.jsonParent(partial, element));
-			return partial;
+			element.setParent(partial);
+			element.getUnderlyingNode()
+				.setProperty(JSON_STRING, QueriesHelper.jsonParent(element, partial));
+			return element;
 		}));
 		
 		getUnderlyingNode()

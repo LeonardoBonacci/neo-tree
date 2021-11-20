@@ -1,0 +1,5 @@
+{
+  "id": "foo",
+  "name": "first parent is n2",
+  "parentId": "n2"
+}

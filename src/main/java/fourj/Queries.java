@@ -1,6 +1,7 @@
 package fourj;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -48,9 +49,10 @@ public class Queries {
 			var asList = (ArrayList) row.get("path");
 
 			var p = new Product((NodeEntity) asList.get(0));
-			var hPath = asList.subList(1, asList.size()).stream().map(n -> new Hierarchy((NodeEntity) n));
-
-			return p.addHierarchyPath(hPath).asJsonString();
+			var hPath = asList.subList(1, asList.size());
+			Collections.reverse(hPath);
+			
+			return p.addHierarchyPath(hPath.stream().map(n -> new Hierarchy((NodeEntity) n))).asJsonString();
 		}
 	}
 }

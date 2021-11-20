@@ -51,7 +51,7 @@ public abstract class Base {
 		if (n == null) { // + insert
 			n = tx.createNode(label());
 		}
-		
+
 		// = upsert
 		for (String prop : n.getAllProperties().keySet()) {
 			n.removeProperty(prop);
@@ -59,8 +59,6 @@ public abstract class Base {
 
 		n.setProperty(ID, json.get(ID).textValue());
 		n.setProperty(NAME, json.get(NAME).textValue());
-		
-		// root or no root?
 		if (json.get(PARENT_ID) != null) {
 			n.setProperty(PARENT_ID, json.get(PARENT_ID).textValue());
 		}
@@ -105,8 +103,8 @@ public abstract class Base {
 			return node.createRelationshipTo(parent, RelTypes.PARENT);
 		}
 		
-		// if parent not the same update (= delete + create)
-		if (r.getEndNode().hasProperty(TMP) // what an obscure condition..
+		// if parent is tmp node or 'not the same update' (= delete + create)
+		if (r.getEndNode().hasProperty(TMP) // what an obscure condition...
 			|| node.getProperty(PARENT_ID) != (String)r.getEndNode().getProperty(ID)) {
 			r.delete();
 			return node.createRelationshipTo(parent, RelTypes.PARENT);
