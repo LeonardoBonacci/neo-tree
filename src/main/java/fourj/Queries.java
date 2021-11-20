@@ -21,18 +21,18 @@ public class Queries {
 
 	// @formatter:off
 	public final static String hMatch = 
-			"MATCH (h:Hierarchy {id: $id})-[*]->(r:Hierarchy)" + "\n" 
-		  + "WHERE r.parentId IS NULL AND r.tmp IS NULL" + "\n" 
+			"MATCH (h:Hierarchy {id: $id})-[* {tmp:false}]->(r:Hierarchy)" + "\n" 
+		  + "WHERE r.parentId IS NULL" + "\n" 
 		  + "RETURN h, h.name";
 
 	public final static String pMatch = 
-			"MATCH path = (p:Product {id: $id})-[*]->(r:Hierarchy)" + "\n" 
-		  + "WHERE r.parentId IS NULL AND r.tmp IS NULL" + "\n" 
+			"MATCH path = (p:Product {id: $id})-[* {tmp:false}]->(r:Hierarchy)" + "\n" 
+		  + "WHERE r.parentId IS NULL" + "\n" 
 		  + "RETURN nodes(path) AS path";
 
 	public final static String subtreeMatch = 
-			"MATCH (p:Product)-[*]->(h:Hierarchy {id: $id})-[*]->(r:Hierarchy)" + "\n"
-		  + "WHERE r.parentId IS NULL AND r.tmp IS NULL" + "\n" 
+			"MATCH (p:Product)-[* {tmp:false}]->(h:Hierarchy {id: $id})-[* {tmp:false}]->(r:Hierarchy)" + "\n"
+		  + "WHERE r.parentId IS NULL" + "\n" 
 		  + "RETURN p, p.name";
 	// @formatter:on
 

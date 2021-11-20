@@ -51,10 +51,22 @@ public class QueriesTest {
 		}
 	}
 
-	@RepeatedTest(5)
-	public void one(TestInfo testInfo) {
+	@RepeatedTest(1)
+	public void only(TestInfo testInfo) {
 		insertShuffledData(db);
-		
+
+//		try (Transaction t = db.beginTx()) {
+//		System.out.println("nnnnnn");
+//		t.getAllNodes().stream()
+//			.forEach(n -> System.out.println("n>" + n.getAllProperties()));
+//		System.out.println("rrrrrr");
+//		t.getAllRelationships().stream().forEach(r -> {
+//			System.out.println("from>" + r.getStartNode().getAllProperties());
+//			System.out.println("r>" + r.getAllProperties());
+//			System.out.println("to>" + r.getEndNode().getAllProperties());
+//		});
+//	}	
+
 		try (Transaction tx = db.beginTx()) {
 			assertEquals(6l, tx.getAllNodes().stream().filter(n -> n.getLabels().iterator().next().equals(Base.hlabel)).count());
 			assertEquals(3l, tx.getAllNodes().stream().filter(n -> n.getLabels().iterator().next().equals(Base.plabel)).count());
@@ -106,7 +118,6 @@ public class QueriesTest {
 
 		Collections.shuffle(pleaves);
 		pleaves.stream().forEach(n -> new Product(db, n));
-
 		////////////////////////////
 
 		var upnodes = Lists.newArrayList(

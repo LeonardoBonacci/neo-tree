@@ -40,6 +40,7 @@ public abstract class Base {
 			parentalRelationship(node, parent);
 
 			tx.commit();
+			
 			this.underlyingNode = node;
 		}	
 	}
@@ -100,14 +101,26 @@ public abstract class Base {
 		// if no relationship then create one
 		Relationship r = node.getSingleRelationship(RelTypes.PARENT, Direction.OUTGOING);
 		if (r == null) {
-			return node.createRelationshipTo(parent, RelTypes.PARENT);
+			r = node.createRelationshipTo(parent, RelTypes.PARENT);
+			r.setProperty(TMP, false);
+			return r;
 		}
 		
-		// if parent is tmp node or 'not the same update' (= delete + create)
-		if (r.getEndNode().hasProperty(TMP) // what an obscure condition...
-			|| node.getProperty(PARENT_ID) != (String)r.getEndNode().getProperty(ID)) {
+		// if parent is tmp node
+		if (r.getEndNode().hasProperty(TMP))  { // what a hack...
 			r.delete();
-			return node.createRelationshipTo(parent, RelTypes.PARENT);
+			r = node.createRelationshipTo(parent, RelTypes.PARENT);
+			
+			if ((Boolean)parent.getProperty(TMP)) {
+				r.setProperty(TMP, true);
+			}	
+			return r;
+		}
+
+		if (node.getProperty(PARENT_ID) != (String)r.getEndNode().getProperty(ID)) {
+			r.delete();
+			r = node.createRelationshipTo(parent, RelTypes.PARENT);
+			r.setProperty(TMP, false);
 		}
 		
 		// else relationship the same leave alone
